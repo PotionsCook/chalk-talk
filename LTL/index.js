@@ -14,9 +14,6 @@ import {
 
 import "./test.js";
 
-const occurences = universe => predicate => [...universe].filter(predicate);
-const proba = universe => occurences => occurences.length / universe.length;
-
 const prior_impact = lexic => objective => prior => {
   // In mathematical terms we want to return
   // impact = Probability(objective|prior) / P(objective)
@@ -24,6 +21,9 @@ const prior_impact = lexic => objective => prior => {
 
   // The conditional posterior probability is defined by
   // P(objective|prior) = P(objective after prior)/P(prior)
+
+  const occurences = universe => predicate => [...universe].filter(predicate);
+  const proba = universe => occurences => occurences.length / universe.length;
 
   const [
     objective_after_prior_occurences,
