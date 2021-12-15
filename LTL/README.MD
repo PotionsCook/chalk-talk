@@ -1,25 +1,57 @@
 # [Chalk-Talk] LTL
 
-<aside>
-🎯 - Show functional programming and ES6 syntax in action (currying, point-free notation, composition...)
-- Implement a small and useful LTL library to query iterables.
+# What ?
 
-</aside>
+---
 
-LTL provides a library to ease the composition of LTL formulas .
+LTL provides a library to ease the composition of LTL formulas in javascript.
 
 For instance it enables in a few lines of code to test
 
 - if a word satisfies : has an 'r' eventually followed by an 'e'
-- if a sequence of events satisfies: has an event 'saw this product' eventually followed by a 'purchase'
+    
+    ```jsx
+    import {f_ap, after} from "./ltl.js"
+    
+    // An atomic proposition factory
+    const ap = letter => f_ap(value => letter === value);
+    // The predicate has an "e" after an "r"
+    const predicate = after(ap("r"))(ap("e"))
+    console.log(predicate([...'superb'])) // returns false
+    console.log(predicate([...'superbe'])) // returns true
+    ```
+    
+- the same way, if a sequence of events satisfies: has an event 'saw_product' eventually followed by a 'purchase'
+    
+    ```jsx
+    import {f_ap, after} from "./ltl.js"
+    
+    // seque
+    const sequence_1 = [{name:'saw_product'}, {name:'purchase'}]
+    const sequence_2 = [{name:'saw_product'}]
+    // An atomic proposition factory
+    const ap = event_name => f_ap(event => event_name === event.name);
+    // The predicate has an "e" after an "r"
+    const predicate = after(ap("saw_product"))(ap("purchase"))
+    console.log(predicate(sequence_2)) // returns false
+    console.log(predicate(sequence_1)) // returns true
+    ```
+    
 
-But also way more complex sequences like the one described in Google Analytics Segment.
+But also way more complex predicates like the one described in Google Analytics Segments.
+
+[Segments - Feature Reference | Analytics Core Reporting API | Google Developers](https://developers.google.com/analytics/devguides/reporting/core/v3/segments-feature-reference)
+
+# Why ?
+
+---
 
 I recently read in full Eric Eliott amazing Medium pages on composing software. I advised all software developers interested in functional programming to do the same.
 
 By the end of your read you'll be confident in saying :
 
-> _“A monad is just a monoid in the category of endofunctors. What’s the problem?”_
+> *“A monad is just a monoid in the category of endofunctors. What’s the problem?”*
+> 
 
 [Composing Software: The Book](https://medium.com/javascript-scene/composing-software-the-book-f31c77fc3ddc)
 
