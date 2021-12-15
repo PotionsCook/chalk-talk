@@ -1,86 +1,81 @@
-import { f_true, f_ap, not, and } from "./ltl.js";
-import { assert } from "./utils.js";
+import {
+  f_true,
+  f_ap,
+  not,
+  and,
+  next,
+  until,
+  eventually,
+  always,
+  or,
+  after,
+  sequence
+} from "./ltl.js";
 
-// LTL library offer functions
-// to ease the composition of LTL formulas
+import "./test.js";
 
-// like
-// formula1 = until(atomicProperty)
-// fomula1(iterable) returns true or false
+const occurences = universe => predicate => [...universe].filter(predicate);
+const proba = universe => occurences => occurences.length / universe.length;
 
-// where atomic property is a predicate
-// taking a value of the iterator as an argument
-// and returning a boolean
+const prior_impact = lexic => objective => prior => {
+  // In mathematical terms we want to return
+  // impact = Probability(objective|prior) / P(objective)
+  // impact = conditional_proba / objective_proba
 
-const str = "test";
-const word = [...str];
+  // The conditional posterior probability is defined by
+  // P(objective|prior) = P(objective after prior)/P(prior)
+
+  const [
+    objective_after_prior_occurences,
+    prior_occurences,
+    objective_occurences
+  ] = [after(prior)(objective), eventually(prior), eventually(objective)].map(
+    occurences(lexic)
+  );
+
+  const conditional_proba = proba(prior_occurences)(
+    objective_after_prior_occurences
+  );
+  const objective_proba = proba(lexic)(objective_occurences);
+  const impact_ratio = conditional_proba / objective_proba;
+
+  return {
+    impact_ratio,
+    objective_proba,
+    conditional_proba,
+    objective_after_prior_occurences,
+    prior_occurences,
+    objective_occurences
+  };
+};
+
+const print = ({ lexic, objective, prior, impact_ratio }) => {
+  console.log(`Considering the following lexic`);
+  console.log(lexic);
+  console.log(
+    `"${objective}" is ${impact_ratio} more likely to happen after "${prior}" than random
+    `
+  );
+};
+
+const lexic = "where atomic property is a predicate taking a value of the iterator as an argument and returning a boolean"
+  .split(" ")
+  .map(word => [...word]);
 
 // In our case the iterable
 // is a string transformed into an array
 // like ['t','e','s','t']
 // the following simple atomic property factory
-// takes a letter and returns a predicate
+// takes a letter and returns a formula
 // comparing
 //   the value provided by the iterator
 //   and the letter
+const ap = letter => f_ap(value => letter === value);
 
-const createAtomicProperty = letter => value => letter === value;
+const impact_r_on_e = prior_impact(lexic)(ap("e"))(ap("r"));
+print({ lexic, prior: "r", objective: "e", ...impact_r_on_e });
 
-/*
-// Here we take every letter of the word
-// and create an atomicProperty outt of it
-const createAtomicProperties = iterable => {
-  return [...new Set(iterable)].map(createAtomicProperty);
-};
-*/
-
-// create a set of atomic properties from a value
-// In our case the atomic properties of one letter
-// is simply a set of one letter
-// const createAtomicProperties = value => new Set(value)
-
-// We want to create a new iterator where
-// the value is the set of atomic propertties
-// and
-
-assert({
-  given: "true formula",
-  should: "return true for any iterable",
-  actual: f_true([]),
-  expected: true
-});
-
-assert({
-  given: "atomic property formula",
-  should: "return true if the atomic property is satisfied by the first letter",
-  actual: f_ap(value => "t" === value)([..."test"]),
-  expected: true
-});
-
-assert({
-  given: "negation of the true formula",
-  should: "return false for any iterable",
-  actual: not(f_true)([]),
-  expected: false
-});
-
-assert({
-  given: "negation of the negation of the true formula",
-  should: "return ttrue for any iterable",
-  actual: not(not(f_true))([]),
-  expected: true
-});
-
-assert({
-  given: "true and true",
-  should: "return true for any iterable",
-  actual: and(f_true)(f_true)([]),
-  expected: true
-});
-
-assert({
-  given: "true and not true formula",
-  should: "return false for any iterable",
-  actual: and(f_true)(not(f_true))([]),
-  expected: false
-});
+const impact_in_on_g = prior_impact(lexic)(ap("g"))(
+  and(ap("i"))(next(ap("n")))
+);
+print({ lexic, prior: "in", objective: "g", ...impact_in_on_g });
