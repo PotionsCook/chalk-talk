@@ -58,7 +58,7 @@ export const until = formula1 => formula2 => iterable => {
 // composite "point-free"
 // of the same operator
 export const chain = operation => (...formulas) =>
-  formulas.reduce((f, g) => operation(f)(g), f_true);
+  formulas.reduce((f, g) => operation(f)(g));
 
 export const sum = chain(and);
 export const eventually = formula => until(f_true)(formula);
